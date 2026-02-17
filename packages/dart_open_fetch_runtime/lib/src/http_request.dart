@@ -30,8 +30,7 @@ class HttpRequest {
       other is HttpRequest &&
           method == other.method &&
           url == other.url &&
-          const MapEquality<String, String>()
-              .equals(headers, other.headers) &&
+          const MapEquality<String, String>().equals(headers, other.headers) &&
           body == other.body;
 
   @override

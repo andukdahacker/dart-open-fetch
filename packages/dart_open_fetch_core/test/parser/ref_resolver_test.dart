@@ -172,7 +172,9 @@ void main() {
           '/items': <String, dynamic>{
             'get': <String, dynamic>{
               'parameters': <dynamic>[
-                <String, dynamic>{r'$ref': '#/components/parameters/LimitParam'},
+                <String, dynamic>{
+                  r'$ref': '#/components/parameters/LimitParam'
+                },
               ],
             },
           },

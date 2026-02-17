@@ -83,7 +83,8 @@ void main() {
       test('rejects Swagger 2.0', () async {
         final parser = OpenApiParser(fileReader: _noFileReader);
         expect(
-          () => parser.parse(<String, dynamic>{'swagger': '2.0'}, basePath: '.'),
+          () =>
+              parser.parse(<String, dynamic>{'swagger': '2.0'}, basePath: '.'),
           throwsA(isA<SchemaParseException>()),
         );
       });
@@ -91,7 +92,8 @@ void main() {
       test('rejects missing openapi field', () async {
         final parser = OpenApiParser(fileReader: _noFileReader);
         expect(
-          () => parser.parse(<String, dynamic>{'info': <String, dynamic>{}}, basePath: '.'),
+          () => parser.parse(<String, dynamic>{'info': <String, dynamic>{}},
+              basePath: '.'),
           throwsA(isA<SchemaParseException>()),
         );
       });
@@ -185,9 +187,8 @@ void main() {
 
       test('handles allOf compositions', () {
         // Stripe uses extensive allOf — parser should handle without errors
-        final allOfSchemas = result.spec.schemas
-            .where((s) => s.properties.isNotEmpty)
-            .toList();
+        final allOfSchemas =
+            result.spec.schemas.where((s) => s.properties.isNotEmpty).toList();
         expect(allOfSchemas, isNotEmpty);
       });
     }, timeout: const Timeout(Duration(minutes: 5)));

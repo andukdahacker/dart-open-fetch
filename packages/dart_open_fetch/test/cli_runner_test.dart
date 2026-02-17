@@ -10,7 +10,8 @@ String _fixturePath() {
   while (!Directory('${dir.path}/packages/dart_open_fetch_core').existsSync()) {
     final parent = dir.parent;
     if (parent.path == dir.path) {
-      throw StateError('Cannot find packages/ directory from ${Directory.current.path}');
+      throw StateError(
+          'Cannot find packages/ directory from ${Directory.current.path}');
     }
     dir = parent;
   }
@@ -20,7 +21,8 @@ String _fixturePath() {
 /// Resolve the path to the runtime package.
 String _runtimePath() {
   var dir = Directory.current;
-  while (!Directory('${dir.path}/packages/dart_open_fetch_runtime').existsSync()) {
+  while (
+      !Directory('${dir.path}/packages/dart_open_fetch_runtime').existsSync()) {
     final parent = dir.parent;
     if (parent.path == dir.path) {
       throw StateError('Cannot find packages/ directory');
@@ -106,8 +108,7 @@ void main() {
 
       // Should have models.dart, barrel, and client files
       expect(files, contains('/models.dart'));
-      expect(
-          files.any((f) => f.endsWith('.dart') && f.contains('/clients/')),
+      expect(files.any((f) => f.endsWith('.dart') && f.contains('/clients/')),
           isTrue);
     });
 
@@ -167,8 +168,7 @@ dependencies:
         ['pub', 'get'],
         workingDirectory: '${tempDir.path}/gen_project',
       );
-      expect(pubGet.exitCode, 0,
-          reason: 'pub get failed: ${pubGet.stderr}');
+      expect(pubGet.exitCode, 0, reason: 'pub get failed: ${pubGet.stderr}');
 
       // Run dart analyze
       final analyze = await Process.run(

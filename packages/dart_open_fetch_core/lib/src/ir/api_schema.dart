@@ -161,12 +161,11 @@ class ApiDiscriminator {
       identical(this, other) ||
       other is ApiDiscriminator &&
           propertyName == other.propertyName &&
-          const MapEquality<String, String>()
-              .equals(mapping, other.mapping);
+          const MapEquality<String, String>().equals(mapping, other.mapping);
 
   @override
-  int get hashCode =>
-      Object.hash(propertyName, const MapEquality<String, String>().hash(mapping));
+  int get hashCode => Object.hash(
+      propertyName, const MapEquality<String, String>().hash(mapping));
 
   @override
   String toString() => 'ApiDiscriminator($propertyName)';

@@ -260,15 +260,12 @@ class ClientGenerator {
     if (queryParams.isEmpty) {
       buf.writeln("    final url = Uri.parse('\$basePath$pathExpr');");
     } else {
-      buf.writeln(
-          '    final queryParams = <String, List<String>>{};');
+      buf.writeln('    final queryParams = <String, List<String>>{};');
       for (final param in queryParams) {
         buf.write(parameterSerializer.queryParamStatements(param));
       }
-      buf.writeln(
-          "    final url = Uri.parse('\$basePath$pathExpr').replace(");
-      buf.writeln(
-          '      queryParameters: queryParams,');
+      buf.writeln("    final url = Uri.parse('\$basePath$pathExpr').replace(");
+      buf.writeln('      queryParameters: queryParams,');
       buf.writeln('    );');
     }
   }
@@ -288,8 +285,7 @@ class ClientGenerator {
     for (final param in headerParams) {
       final fieldName = NameResolver.resolveFieldName(param.name);
       if (param.required_) {
-        buf.writeln(
-            "      '${param.name}': $fieldName.toString(),");
+        buf.writeln("      '${param.name}': $fieldName.toString(),");
       }
     }
     buf.writeln('    };');
@@ -318,8 +314,7 @@ class ClientGenerator {
       // JSON body serialization → jsonBody variable
       if (body.required_) {
         if (_needsToJson(jsonSchema)) {
-          buf.writeln(
-              "    final jsonBody = jsonEncode(body.toJson());");
+          buf.writeln("    final jsonBody = jsonEncode(body.toJson());");
         } else {
           buf.writeln("    final jsonBody = jsonEncode(body);");
         }
@@ -343,7 +338,8 @@ class ClientGenerator {
     StringBuffer buf,
     ApiSchema jsonSchema,
   ) {
-    buf.writeln('    if (response.statusCode >= 200 && response.statusCode < 300) {');
+    buf.writeln(
+        '    if (response.statusCode >= 200 && response.statusCode < 300) {');
     buf.writeln('      if (response.body.isEmpty) {');
     buf.writeln('        throw ApiException(');
     buf.writeln('          statusCode: response.statusCode,');
@@ -351,8 +347,7 @@ class ClientGenerator {
     buf.writeln('          headers: response.headers,');
     buf.writeln('        );');
     buf.writeln('      }');
-    buf.writeln(
-        '      final json = jsonDecode(response.body);');
+    buf.writeln('      final json = jsonDecode(response.body);');
 
     final fromJsonExpr = _fromJsonExpression('json', jsonSchema);
     buf.writeln('      return ApiResponse(');
@@ -389,10 +384,9 @@ class ClientGenerator {
       SchemaType.array => schema.items != null
           ? 'List<${_schemaToDartType(schema.items!)}>'
           : 'List<dynamic>',
-      SchemaType.object =>
-        schema.name != null
-            ? nameResolver.resolveClassName(schema.name!)
-            : 'Map<String, dynamic>',
+      SchemaType.object => schema.name != null
+          ? nameResolver.resolveClassName(schema.name!)
+          : 'Map<String, dynamic>',
       _ => 'dynamic',
     };
   }
@@ -421,10 +415,9 @@ class ClientGenerator {
       SchemaType.array => schema.items != null
           ? '($accessor as List<dynamic>).map((e) => ${_fromJsonExpression('e', schema.items!)}).toList()'
           : '$accessor as List<dynamic>',
-      SchemaType.object =>
-        schema.name != null
-            ? '${nameResolver.resolveClassName(schema.name!)}.fromJson($accessor as Map<String, dynamic>)'
-            : 'Map<String, dynamic>.from($accessor as Map)',
+      SchemaType.object => schema.name != null
+          ? '${nameResolver.resolveClassName(schema.name!)}.fromJson($accessor as Map<String, dynamic>)'
+          : 'Map<String, dynamic>.from($accessor as Map)',
       _ => accessor,
     };
   }

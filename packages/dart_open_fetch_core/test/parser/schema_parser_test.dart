@@ -85,7 +85,8 @@ void main() {
         'additionalProperties': true,
       });
       expect(schema.hasAdditionalProperties, true);
-      expect(schema.additionalProperties, isNull); // null = Map<String, dynamic>
+      expect(
+          schema.additionalProperties, isNull); // null = Map<String, dynamic>
     });
 
     test('parses free-form object', () {
@@ -421,8 +422,10 @@ void main() {
       });
 
       final tree = schemas[0];
-      final leftStub = tree.properties.firstWhere((p) => p.name == 'left').schema;
-      final rightStub = tree.properties.firstWhere((p) => p.name == 'right').schema;
+      final leftStub =
+          tree.properties.firstWhere((p) => p.name == 'left').schema;
+      final rightStub =
+          tree.properties.firstWhere((p) => p.name == 'right').schema;
 
       expect(leftStub.isCircularRef, true);
       expect(rightStub.isCircularRef, true);

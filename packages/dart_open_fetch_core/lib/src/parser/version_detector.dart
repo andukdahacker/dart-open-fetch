@@ -100,9 +100,8 @@ class VersionDetector {
     if (nonNullTypes.length == 1) {
       node['type'] = nonNullTypes.first;
     } else if (nonNullTypes.length > 1) {
-      node['oneOf'] = nonNullTypes
-          .map((t) => <String, dynamic>{'type': t})
-          .toList();
+      node['oneOf'] =
+          nonNullTypes.map((t) => <String, dynamic>{'type': t}).toList();
     } else {
       node['type'] = 'object';
       node['nullable'] = true;

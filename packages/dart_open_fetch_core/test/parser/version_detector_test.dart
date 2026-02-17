@@ -39,9 +39,7 @@ void main() {
       expect(testSchema['nullable'], true);
     });
 
-    test(
-        'normalizes 3.1 multi-type [string, integer] to oneOf',
-        () {
+    test('normalizes 3.1 multi-type [string, integer] to oneOf', () {
       final schema = <String, dynamic>{
         'openapi': '3.1.0',
         'components': {

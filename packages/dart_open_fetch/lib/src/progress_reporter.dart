@@ -8,8 +8,7 @@ class ProgressReporter {
 
   void writing(String outputDir) => _print('Writing files to $outputDir...');
 
-  void done(int fileCount) =>
-      _print('Done. Generated $fileCount files.');
+  void done(int fileCount) => _print('Done. Generated $fileCount files.');
 
   void warning(String message) => _print('  Warning: $message');
 

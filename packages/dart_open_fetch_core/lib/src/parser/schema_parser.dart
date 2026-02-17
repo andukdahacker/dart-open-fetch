@@ -209,8 +209,7 @@ class SchemaParser {
 
     if (type == SchemaType.object) {
       if (node.containsKey('required')) {
-        requiredProperties =
-            (node['required'] as List).cast<String>().toSet();
+        requiredProperties = (node['required'] as List).cast<String>().toSet();
       }
 
       if (node.containsKey('properties')) {
@@ -239,8 +238,7 @@ class SchemaParser {
         if (ap is Map<String, dynamic>) {
           additionalPropsSchema = parseSchema(
             ap,
-            path:
-                path != null ? '$path/additionalProperties' : null,
+            path: path != null ? '$path/additionalProperties' : null,
           );
         }
         // If ap is true or absent schema, additionalPropsSchema stays null
@@ -297,8 +295,7 @@ class SchemaParser {
               description: prop.description ?? existing.description,
             );
             diagnostics.add(Diagnostic(
-              message:
-                  'allOf type conflict for property "${prop.name}": '
+              message: 'allOf type conflict for property "${prop.name}": '
                   '${existing.schema.type} vs ${prop.schema.type}, using dynamic',
               schemaPath: path,
               severity: DiagnosticSeverity.warning,

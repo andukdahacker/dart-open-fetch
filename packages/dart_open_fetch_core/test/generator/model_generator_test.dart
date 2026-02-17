@@ -39,7 +39,8 @@ void main() {
       expect(output, contains('final int id;'));
       expect(output, contains('final String name;'));
       expect(output, contains('final String? tag;'));
-      expect(output, contains('factory Pet.fromJson(Map<String, dynamic> json)'));
+      expect(
+          output, contains('factory Pet.fromJson(Map<String, dynamic> json)'));
       expect(output, contains('Map<String, dynamic> toJson()'));
       expect(output, contains('Pet copyWith('));
       expect(output, contains('operator =='));
@@ -160,7 +161,8 @@ void main() {
 
       final output = generator.generateModel(schema);
       expect(output, contains('final String name;'));
-      expect(output, contains('final Map<String, String> additionalProperties;'));
+      expect(
+          output, contains('final Map<String, String> additionalProperties;'));
       // fromJson should filter known keys
       expect(output, contains("'name'"));
     });
@@ -221,7 +223,8 @@ void main() {
     test('resolves duplicate class names', () {
       final resolver = NameResolver();
       expect(resolver.resolveClassName('Pet'), 'Pet');
-      expect(resolver.resolveClassName('Pet'), 'Pet'); // same schema = same name
+      expect(
+          resolver.resolveClassName('Pet'), 'Pet'); // same schema = same name
       // Simulate different schema with same name (via fresh resolver call after clearing)
     });
 

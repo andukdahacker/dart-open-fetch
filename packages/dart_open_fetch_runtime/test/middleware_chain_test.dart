@@ -7,8 +7,8 @@ class MockAdapter implements HttpAdapter {
   final HttpResponse response;
 
   MockAdapter([HttpResponse? response])
-      : response = response ??
-            HttpResponse(statusCode: 200, body: '{"mock":true}');
+      : response =
+            response ?? HttpResponse(statusCode: 200, body: '{"mock":true}');
 
   @override
   Future<HttpResponse> send(HttpRequest request) async {
@@ -83,7 +83,8 @@ void main() {
       expect(adapter.calls.first.headers['X-Auth'], 'token123');
     });
 
-    test('middleware executes in order (first added = first to handle)', () async {
+    test('middleware executes in order (first added = first to handle)',
+        () async {
       final log = <String>[];
       final adapter = MockAdapter();
       final chain = MiddlewareChain(adapter, [

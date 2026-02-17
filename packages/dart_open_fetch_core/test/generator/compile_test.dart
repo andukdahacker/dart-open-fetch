@@ -61,8 +61,7 @@ void main() {
         toolVersion: '0.1.0-test',
       );
       final outputDir = '${tempDir.path}/lib/api';
-      final genResult =
-          await dartGen.generate(parseResult.spec, outputDir);
+      final genResult = await dartGen.generate(parseResult.spec, outputDir);
       expect(genResult.filesWritten, isNotEmpty,
           reason: 'Should have written files');
 

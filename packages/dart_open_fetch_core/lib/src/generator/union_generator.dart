@@ -64,8 +64,7 @@ class UnionGenerator {
     buf.writeln('sealed class $baseName {');
 
     // Factory fromJson
-    buf.writeln(
-        '  factory $baseName.fromJson(Map<String, dynamic> json) {');
+    buf.writeln('  factory $baseName.fromJson(Map<String, dynamic> json) {');
     if (discriminator != null) {
       _writeDiscriminatorFromJson(buf, baseName, variants, discriminator);
     } else {
@@ -172,8 +171,7 @@ class UnionGenerator {
     buf.writeln('  @override');
     buf.writeln('  bool operator ==(Object other) =>');
     buf.writeln('      identical(this, other) ||');
-    buf.writeln(
-        '      other is $variantClassName && value == other.value;');
+    buf.writeln('      other is $variantClassName && value == other.value;');
     buf.writeln();
 
     // hashCode

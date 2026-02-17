@@ -225,7 +225,10 @@ void main() {
                   'name': 'ids',
                   'in': 'query',
                   'style': 'pipeDelimited',
-                  'schema': {'type': 'array', 'items': {'type': 'string'}},
+                  'schema': {
+                    'type': 'array',
+                    'items': {'type': 'string'}
+                  },
                 },
               ],
               'responses': {

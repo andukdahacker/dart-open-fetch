@@ -354,7 +354,8 @@ void main() {
 
       final clients = generator.generateClients(spec);
       final source = clients.first.source;
-      expect(source, contains("this.baseUrl = 'https://petstore.swagger.io/v2'"));
+      expect(
+          source, contains("this.baseUrl = 'https://petstore.swagger.io/v2'"));
       expect(source, contains('required HttpAdapter adapter'));
       expect(source, contains('MiddlewareChain(adapter, middleware)'));
     });

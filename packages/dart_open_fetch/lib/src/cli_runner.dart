@@ -102,9 +102,8 @@ Future<int> _runGenerate({
 
   // 3. Generate code
   final spec = parseResult.spec;
-  final modelCount = spec.schemas
-      .where((s) => s.name != null && !s.isCircularRef)
-      .length;
+  final modelCount =
+      spec.schemas.where((s) => s.name != null && !s.isCircularRef).length;
   final clientCount = spec.paths.length;
   reporter.generating(modelCount, clientCount);
   reporter.writing(outputDir);
@@ -131,7 +130,8 @@ Future<int> _runGenerate({
 }
 
 void _printUsage(ArgParser parser) {
-  print('dart_open_fetch — Generate typed Dart HTTP clients from OpenAPI schemas.\n');
+  print(
+      'dart_open_fetch — Generate typed Dart HTTP clients from OpenAPI schemas.\n');
   print('Usage: dart_open_fetch <command> [options]\n');
   print('Commands:');
   print('  generate <schema>    Generate Dart code from an OpenAPI schema\n');

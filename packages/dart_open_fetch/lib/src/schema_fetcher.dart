@@ -67,7 +67,8 @@ class SchemaFetcher {
     if (value is Map) {
       return Map<String, dynamic>.fromEntries(
         value.entries.map(
-          (e) => MapEntry<String, dynamic>(e.key.toString(), _deepConvert(e.value)),
+          (e) => MapEntry<String, dynamic>(
+              e.key.toString(), _deepConvert(e.value)),
         ),
       );
     }

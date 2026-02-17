@@ -3,8 +3,7 @@ import 'ir/api_spec.dart';
 
 /// Callback to read a file relative to the schema base path.
 /// The CLI provides the implementation; core stays free of dart:io.
-typedef FileReader = Future<Map<String, dynamic>> Function(
-    String relativePath);
+typedef FileReader = Future<Map<String, dynamic>> Function(String relativePath);
 
 /// Result of parsing an OpenAPI schema.
 class ParseResult {

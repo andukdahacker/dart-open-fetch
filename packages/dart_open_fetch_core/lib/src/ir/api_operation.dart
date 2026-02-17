@@ -54,8 +54,7 @@ class ApiOperation {
     final r201 = responses.where((r) => r.statusCode == '201').firstOrNull;
     if (r201 != null) return r201;
     return responses
-        .where((r) =>
-            r.statusCode.startsWith('2') && r.statusCode.length == 3)
+        .where((r) => r.statusCode.startsWith('2') && r.statusCode.length == 3)
         .firstOrNull;
   }
 

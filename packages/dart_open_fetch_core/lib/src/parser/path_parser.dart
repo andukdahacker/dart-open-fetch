@@ -47,10 +47,10 @@ class PathParser {
     for (final method in _httpMethods) {
       if (node.containsKey(method)) {
         final opNode = node[method] as Map<String, dynamic>;
-        final basePath =
-            '#/paths/${_encodeJsonPointer(pathTemplate)}/$method';
+        final basePath = '#/paths/${_encodeJsonPointer(pathTemplate)}/$method';
         operations.add(
-          _parseOperation(method, opNode, pathLevelParams, basePath, pathTemplate),
+          _parseOperation(
+              method, opNode, pathLevelParams, basePath, pathTemplate),
         );
       }
     }
@@ -149,15 +149,14 @@ class PathParser {
 
     // Warn about unsupported styles
     if (style != null) {
-      final isDefault = (location == ParameterLocation.path &&
-              style == 'simple') ||
-          ((location == ParameterLocation.query ||
-                  location == ParameterLocation.cookie) &&
-              style == 'form');
+      final isDefault =
+          (location == ParameterLocation.path && style == 'simple') ||
+              ((location == ParameterLocation.query ||
+                      location == ParameterLocation.cookie) &&
+                  style == 'form');
       if (!isDefault) {
         diagnostics.add(Diagnostic(
-          message:
-              'Unsupported parameter style "$style" for ${node['name']}, '
+          message: 'Unsupported parameter style "$style" for ${node['name']}, '
               'using default serialization',
           schemaPath: path,
           severity: DiagnosticSeverity.warning,
@@ -286,17 +285,13 @@ class PathParser {
 
   /// Generate operationId from method + path.
   String _generateOperationId(String method, String path) {
-    final parts = path
-        .split('/')
-        .where((s) => s.isNotEmpty)
-        .map((s) {
-          if (s.startsWith('{') && s.endsWith('}')) {
-            final param = s.substring(1, s.length - 1);
-            return 'By${_capitalize(param)}';
-          }
-          return _capitalize(s);
-        })
-        .join();
+    final parts = path.split('/').where((s) => s.isNotEmpty).map((s) {
+      if (s.startsWith('{') && s.endsWith('}')) {
+        final param = s.substring(1, s.length - 1);
+        return 'By${_capitalize(param)}';
+      }
+      return _capitalize(s);
+    }).join();
     return '${method.toLowerCase()}$parts';
   }
 

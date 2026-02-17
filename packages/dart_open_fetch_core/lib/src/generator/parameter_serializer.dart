@@ -68,8 +68,7 @@ class ParameterSerializer {
       }
     } else {
       if (isRequired) {
-        buf.writeln(
-            "    queryParams['$paramName'] = [$fieldName.toString()];");
+        buf.writeln("    queryParams['$paramName'] = [$fieldName.toString()];");
       } else {
         buf.writeln('    if ($fieldName != null) {');
         buf.writeln(

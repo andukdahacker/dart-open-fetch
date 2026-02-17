@@ -24,8 +24,7 @@ class HttpResponse {
       identical(this, other) ||
       other is HttpResponse &&
           statusCode == other.statusCode &&
-          const MapEquality<String, String>()
-              .equals(headers, other.headers) &&
+          const MapEquality<String, String>().equals(headers, other.headers) &&
           body == other.body;
 
   @override

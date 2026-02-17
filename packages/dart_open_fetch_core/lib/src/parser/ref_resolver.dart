@@ -81,7 +81,9 @@ class RefResolver {
       for (final key in keys) {
         // Skip component schema definitions so they stay pristine for
         // lookups in _resolveRef. They get resolved on-demand via $ref.
-        if (skipComponentSchemas && path == '#/components' && key == 'schemas') {
+        if (skipComponentSchemas &&
+            path == '#/components' &&
+            key == 'schemas') {
           continue;
         }
 

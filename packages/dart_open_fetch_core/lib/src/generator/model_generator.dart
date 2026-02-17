@@ -114,8 +114,8 @@ class ModelGenerator {
         b.optionalParameters.add(Parameter((p) {
           p.name = NameResolver.resolveFieldName(prop.name);
           p.named = true;
-          p.required = prop.schema.nullable == false &&
-              prop.schema.defaultValue == null;
+          p.required =
+              prop.schema.nullable == false && prop.schema.defaultValue == null;
           p.toThis = true;
         }));
       }
@@ -144,7 +144,9 @@ class ModelGenerator {
           refer("Deprecated").call([literalString('Deprecated in API spec')]),
         );
       }
-      if (!isRequired && !prop.schema.nullable && prop.schema.defaultValue != null) {
+      if (!isRequired &&
+          !prop.schema.nullable &&
+          prop.schema.defaultValue != null) {
         // Non-required with default — no annotation needed
       }
     });
@@ -178,15 +180,18 @@ class ModelGenerator {
     }
     if (hasAdditionalProps) {
       final knownKeys = properties.map((p) => "'${p.name}'").join(', ');
-      final valueType =
-          additionalPropsSchema != null ? _dartType(additionalPropsSchema) : 'dynamic';
-      body.writeln('  additionalProperties: Map<String, $valueType>.fromEntries(');
+      final valueType = additionalPropsSchema != null
+          ? _dartType(additionalPropsSchema)
+          : 'dynamic';
+      body.writeln(
+          '  additionalProperties: Map<String, $valueType>.fromEntries(');
       body.writeln('    json.entries');
       body.writeln('      .where((e) => !const {$knownKeys}.contains(e.key))');
       if (valueType == 'dynamic') {
         body.writeln('      .map((e) => MapEntry(e.key, e.value)),');
       } else {
-        body.writeln('      .map((e) => MapEntry(e.key, e.value as $valueType)),');
+        body.writeln(
+            '      .map((e) => MapEntry(e.key, e.value as $valueType)),');
       }
       body.writeln('  ),');
     }
@@ -219,8 +224,8 @@ class ModelGenerator {
       final fieldName = NameResolver.resolveFieldName(prop.name);
       final jsonKey = prop.name;
       final isRequired = required.contains(prop.name);
-      final expr = _toJsonExpression(fieldName, prop.schema,
-          isRequired: isRequired);
+      final expr =
+          _toJsonExpression(fieldName, prop.schema, isRequired: isRequired);
       lines.writeln("  '$jsonKey': $expr,");
     }
     lines.writeln('};');
@@ -271,8 +276,9 @@ class ModelGenerator {
         }
       }
       if (hasAdditionalProps) {
-        final valueType =
-            additionalPropsSchema != null ? _dartType(additionalPropsSchema) : 'dynamic';
+        final valueType = additionalPropsSchema != null
+            ? _dartType(additionalPropsSchema)
+            : 'dynamic';
         b.optionalParameters.add(Parameter((p) {
           p.name = 'additionalProperties';
           p.named = true;
@@ -287,13 +293,15 @@ class ModelGenerator {
         final isRequired = required.contains(prop.name);
         final isNullable = !isRequired || prop.schema.nullable;
         if (isNullable) {
-          args.writeln('  $fieldName: $fieldName != null ? $fieldName() : this.$fieldName,');
+          args.writeln(
+              '  $fieldName: $fieldName != null ? $fieldName() : this.$fieldName,');
         } else {
           args.writeln('  $fieldName: $fieldName ?? this.$fieldName,');
         }
       }
       if (hasAdditionalProps) {
-        args.writeln('  additionalProperties: additionalProperties ?? this.additionalProperties,');
+        args.writeln(
+            '  additionalProperties: additionalProperties ?? this.additionalProperties,');
       }
       args.writeln(');');
 
@@ -505,7 +513,8 @@ $cases
         if (schema.name != null) {
           return '${nameResolver.resolveClassName(schema.name!)}$nullSuffix';
         }
-        if (schema.hasAdditionalProperties && schema.additionalProperties != null) {
+        if (schema.hasAdditionalProperties &&
+            schema.additionalProperties != null) {
           final valueType = _dartType(schema.additionalProperties!);
           return 'Map<String, $valueType>$nullSuffix';
         }
@@ -574,9 +583,8 @@ $cases
         if (isNullable) return '$accessor as bool?';
         return '$accessor as bool';
       case SchemaType.array:
-        final itemExpr = schema.items != null
-            ? _fromJsonListItem('e', schema.items!)
-            : 'e';
+        final itemExpr =
+            schema.items != null ? _fromJsonListItem('e', schema.items!) : 'e';
         if (isNullable) {
           return '$accessor != null ? ($accessor as List<dynamic>).map((e) => $itemExpr).toList() : null';
         }
@@ -589,7 +597,8 @@ $cases
           }
           return '$className.fromJson($accessor as Map<String, dynamic>)';
         }
-        if (schema.hasAdditionalProperties && schema.additionalProperties != null) {
+        if (schema.hasAdditionalProperties &&
+            schema.additionalProperties != null) {
           final valueType = _dartType(schema.additionalProperties!);
           if (isNullable) {
             return '$accessor != null ? ($accessor as Map<String, dynamic>).map((k, v) => MapEntry(k, v as $valueType)) : null';
@@ -720,7 +729,9 @@ $cases
     if (schema.name != null && (schema.isObject || schema.isComposed)) {
       return true;
     }
-    if (schema.isArray && schema.items != null) return _needsToJson(schema.items!);
+    if (schema.isArray && schema.items != null) {
+      return _needsToJson(schema.items!);
+    }
     return false;
   }
 
