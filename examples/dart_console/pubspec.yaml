@@ -1,0 +1,14 @@
+name: dart_console_example
+description: Console example showing how to use dart_open_fetch generated clients.
+publish_to: none
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  http: ^1.1.0
+  dart_open_fetch_runtime:
+    path: ../../packages/dart_open_fetch_runtime
+
+dev_dependencies:
+  lints: ^5.0.0

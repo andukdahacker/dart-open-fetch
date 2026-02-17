@@ -1,0 +1,19 @@
+name: flutter_app_example
+description: Flutter example showing how to use dart_open_fetch generated clients.
+publish_to: none
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0
+  dart_open_fetch_runtime:
+    path: ../../packages/dart_open_fetch_runtime
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
