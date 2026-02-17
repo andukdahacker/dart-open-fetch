@@ -19,10 +19,10 @@ Generate fully-typed Dart HTTP clients from OpenAPI 3.0/3.1 specifications.
 
 ## Quick Start
 
-Install the CLI:
+Install the CLI from Git:
 
 ```bash
-dart pub global activate dart_open_fetch
+dart pub global activate --source git https://github.com/andukdahacker/dart-open-fetch.git --git-path packages/dart_open_fetch
 ```
 
 Generate a client from an OpenAPI spec:
@@ -69,14 +69,14 @@ Add the runtime dependency to your `pubspec.yaml`:
 dependencies:
   dart_open_fetch_runtime:
     git:
-      url: https://github.com/ducdo/dart-open-fetch.git
+      url: https://github.com/andukdahacker/dart-open-fetch.git
       path: packages/dart_open_fetch_runtime
 ```
 
-Install the CLI globally:
+Install the CLI globally from Git:
 
 ```bash
-dart pub global activate dart_open_fetch
+dart pub global activate --source git https://github.com/andukdahacker/dart-open-fetch.git --git-path packages/dart_open_fetch
 ```
 
 Or run it from a local checkout:
@@ -276,7 +276,7 @@ See [`examples/flutter_app/`](examples/flutter_app/).
 ### Setup
 
 ```bash
-git clone https://github.com/ducdo/dart-open-fetch.git
+git clone https://github.com/andukdahacker/dart-open-fetch.git
 cd dart-open-fetch
 melos bootstrap
 ```
