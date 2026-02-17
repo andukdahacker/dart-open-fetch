@@ -1,7 +1,12 @@
 name: dart_open_fetch_core
-description: Schema parser and code generator for dart_open_fetch. Converts OpenAPI 3.0/3.1 schemas to Dart code.
+description: Schema parser and code generator for dart_open_fetch. Converts OpenAPI 3.0/3.1 specs into typed Dart clients and models.
 version: 0.1.0
-publish_to: none
+repository: https://github.com/andukdahacker/dart-open-fetch
+issue_tracker: https://github.com/andukdahacker/dart-open-fetch/issues
+topics:
+  - openapi
+  - codegen
+  - code-generation
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
@@ -18,3 +23,6 @@ dependencies:
 dev_dependencies:
   lints: ^5.0.0
   test: ^1.24.0
+
+false_secrets:
+  - /test/fixtures/github.yaml
