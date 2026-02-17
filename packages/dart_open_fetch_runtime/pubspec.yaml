@@ -1,0 +1,16 @@
+name: dart_open_fetch_runtime
+description: Runtime library for dart_open_fetch generated clients. Contains HttpAdapter, Middleware, and value classes.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+resolution: workspace
+
+dependencies:
+  collection: ^1.17.0
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.24.0

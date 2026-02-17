@@ -1,0 +1,10 @@
+name: dart_open_fetch_workspace
+publish_to: none
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+workspace:
+  - packages/dart_open_fetch
+  - packages/dart_open_fetch_core
+  - packages/dart_open_fetch_runtime
