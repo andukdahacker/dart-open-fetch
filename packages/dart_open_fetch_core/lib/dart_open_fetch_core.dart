@@ -12,5 +12,6 @@ export 'src/ir/api_response.dart';
 export 'src/ir/api_schema.dart';
 export 'src/ir/api_security.dart';
 export 'src/ir/api_spec.dart';
+export 'src/generator/dart_generator.dart';
 export 'src/parser/openapi_parser.dart';
 export 'src/types.dart';

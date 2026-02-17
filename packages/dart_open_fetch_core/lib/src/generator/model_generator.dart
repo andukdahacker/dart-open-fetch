@@ -166,33 +166,31 @@ class ModelGenerator {
     required bool hasAdditionalProps,
     ApiSchema? additionalPropsSchema,
   }) {
-    final lines = StringBuffer();
-    lines.writeln('factory $className.fromJson(Map<String, dynamic> json) {');
-    lines.writeln('  return $className(');
+    final body = StringBuffer();
+    body.writeln('return $className(');
     for (final prop in properties) {
       final fieldName = NameResolver.resolveFieldName(prop.name);
       final jsonKey = prop.name;
       final isRequired = required.contains(prop.name);
       final expr = _fromJsonExpression("json['$jsonKey']", prop.schema,
           isRequired: isRequired);
-      lines.writeln('    $fieldName: $expr,');
+      body.writeln('  $fieldName: $expr,');
     }
     if (hasAdditionalProps) {
       final knownKeys = properties.map((p) => "'${p.name}'").join(', ');
       final valueType =
           additionalPropsSchema != null ? _dartType(additionalPropsSchema) : 'dynamic';
-      lines.writeln('    additionalProperties: Map<String, $valueType>.fromEntries(');
-      lines.writeln('      json.entries');
-      lines.writeln('        .where((e) => !const {$knownKeys}.contains(e.key))');
+      body.writeln('  additionalProperties: Map<String, $valueType>.fromEntries(');
+      body.writeln('    json.entries');
+      body.writeln('      .where((e) => !const {$knownKeys}.contains(e.key))');
       if (valueType == 'dynamic') {
-        lines.writeln('        .map((e) => MapEntry(e.key, e.value)),');
+        body.writeln('      .map((e) => MapEntry(e.key, e.value)),');
       } else {
-        lines.writeln('        .map((e) => MapEntry(e.key, e.value as $valueType)),');
+        body.writeln('      .map((e) => MapEntry(e.key, e.value as $valueType)),');
       }
-      lines.writeln('    ),');
+      body.writeln('  ),');
     }
-    lines.writeln('  );');
-    lines.writeln('}');
+    body.writeln(');');
 
     return Constructor((b) {
       b.factory = true;
@@ -201,11 +199,8 @@ class ModelGenerator {
         p.name = 'json';
         p.type = refer('Map<String, dynamic>');
       }));
-      b.body = Code(lines.toString().trim().replaceFirst(
-          'factory $className.fromJson(Map<String, dynamic> json) {', ''));
-      // Using lambda won't work for complex bodies, use Code block
+      b.body = Code(body.toString());
       b.lambda = false;
-      // We need to override the full constructor body
     });
   }
 
@@ -315,16 +310,15 @@ class ModelGenerator {
     conditions.write('identical(this, other) || other is $className');
     for (final prop in properties) {
       final fieldName = NameResolver.resolveFieldName(prop.name);
-      if (prop.schema.isArray || prop.schema.type == SchemaType.object) {
-        // Deep equality for collections
-        conditions.write(' && const DeepCollectionEquality().equals($fieldName, other.$fieldName)');
+      if (_isCollectionType(prop.schema)) {
+        conditions.write(' && _deepEquals($fieldName, other.$fieldName)');
       } else {
         conditions.write(' && $fieldName == other.$fieldName');
       }
     }
     if (hasAdditionalProps) {
       conditions.write(
-        ' && const DeepCollectionEquality().equals(additionalProperties, other.additionalProperties)',
+        ' && _deepEquals(additionalProperties, other.additionalProperties)',
       );
     }
 
@@ -345,16 +339,22 @@ class ModelGenerator {
     List<ApiProperty> properties, {
     required bool hasAdditionalProps,
   }) {
-    final fields = properties
-        .map((p) => NameResolver.resolveFieldName(p.name))
-        .toList();
+    final hashArgs = <String>[];
+    for (final prop in properties) {
+      final fieldName = NameResolver.resolveFieldName(prop.name);
+      if (_isCollectionType(prop.schema)) {
+        hashArgs.add('_deepHash($fieldName)');
+      } else {
+        hashArgs.add(fieldName);
+      }
+    }
     if (hasAdditionalProps) {
-      fields.add('additionalProperties');
+      hashArgs.add('_deepHash(additionalProperties)');
     }
 
-    final hashExpr = fields.length <= 20
-        ? 'Object.hash(${fields.join(', ')})'
-        : 'Object.hashAll([${fields.join(', ')}])';
+    final hashExpr = hashArgs.length <= 20
+        ? 'Object.hash(${hashArgs.join(', ')})'
+        : 'Object.hashAll([${hashArgs.join(', ')}])';
 
     return Method((b) {
       b.name = 'hashCode';
@@ -364,6 +364,12 @@ class ModelGenerator {
       b.lambda = true;
       b.body = Code(hashExpr);
     });
+  }
+
+  bool _isCollectionType(ApiSchema schema) {
+    return schema.isArray ||
+        schema.isFreeFormObject ||
+        (schema.type == SchemaType.object && schema.name == null);
   }
 
   Method _buildToString(String className, List<ApiProperty> properties) {

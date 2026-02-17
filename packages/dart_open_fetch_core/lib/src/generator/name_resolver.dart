@@ -20,6 +20,12 @@ class NameResolver {
     'var', 'void', 'when', 'while', 'with', 'yield',
   };
 
+  /// Reserve type names so they won't be used for generated classes.
+  /// Used to avoid collisions with runtime types.
+  void reserveNames(List<String> names) {
+    _usedClassNames.addAll(names);
+  }
+
   /// Resolve a schema name to a unique Dart class name.
   String resolveClassName(String schemaName) {
     if (_classNames.containsKey(schemaName)) {

@@ -2,7 +2,7 @@
 title: 'Dart Open Fetch'
 slug: 'dart-open-fetch'
 created: '2026-02-16'
-status: 'ready-for-dev'
+status: 'completed'
 stepsCompleted: [1, 2, 3, 4]
 tech_stack: ['dart', 'package:args', 'package:yaml', 'package:http', 'package:code_builder', 'package:dart_style', 'package:test', 'melos']
 files_to_modify: []
@@ -470,7 +470,7 @@ No milestone can start its core work until the previous milestone's output exist
 
 ### Milestone 3: Code Generator (IR → Dart)
 
-- [ ] Task 17: Implement model generator (ApiSchema → Dart classes)
+- [x] Task 17: Implement model generator (ApiSchema → Dart classes)
   - File: `packages/dart_open_fetch_core/lib/src/generator/model_generator.dart` (create)
   - File: `packages/dart_open_fetch_core/lib/src/generator/name_resolver.dart` (create)
   - Action: Walk `ApiSchema` IR nodes and emit Dart classes via `code_builder`. Generate: class with final fields, constructor, `fromJson` factory, `toJson` method, `copyWith` (using `_Undefined` sentinel for nullable field disambiguation), `==`/`hashCode`, `toString`. Handle:
@@ -483,14 +483,14 @@ No milestone can start its core work until the previous milestone's output exist
     - **Name resolution** (`name_resolver.dart`): detect and resolve class name collisions (append numeric suffix), reserved word collisions (append `$`), file name collisions on case-insensitive systems. Log warnings for all name transformations.
   - Notes: Use `Code()` blocks for `fromJson`/`toJson` body expressions. Class names match schema names unless collision forces suffix. One file per model.
 
-- [ ] Task 18: Implement union type generator (oneOf/anyOf)
+- [x] Task 18: Implement union type generator (oneOf/anyOf)
   - File: `packages/dart_open_fetch_core/lib/src/generator/union_generator.dart` (create)
   - Action: Generate sealed class hierarchies for `oneOf`/`anyOf` schemas using Dart 3 sealed classes.
     - **With discriminator:** Generate a factory `fromJson` that reads the discriminator field, switches on its value using the discriminator mapping, and constructs the correct subclass. Unknown discriminator values throw `FormatException`.
     - **Without discriminator (ordered try-parse):** Generate a factory `fromJson` that attempts deserialization of each variant in schema-defined order. Each variant's `fromJson` must throw `FormatException` on type mismatch. First successful parse wins. If all variants fail, throw `FormatException` listing all attempted types and their errors.
   - Notes: Dart 3 sealed classes + pattern matching for exhaustive switches. `anyOf` uses same try-parse strategy as `oneOf` without discriminator (semantically similar for code generation). Variant subclass names derived from referenced schema names (e.g., `sealed class PetOrError` with `class PetOrErrorPet extends PetOrError`).
 
-- [ ] Task 19: Implement client generator (ApiOperation → typed methods)
+- [x] Task 19: Implement client generator (ApiOperation → typed methods)
   - File: `packages/dart_open_fetch_core/lib/src/generator/client_generator.dart` (create)
   - File: `packages/dart_open_fetch_core/lib/src/generator/parameter_serializer.dart` (create)
   - Action: Generate a typed client class with one method per `ApiOperation`. Method signature includes: typed path/query/header parameters, typed request body (JSON only), return type from response schema.
@@ -501,12 +501,12 @@ No milestone can start its core work until the previous milestone's output exist
     - **Parameter serializer** (`parameter_serializer.dart`): generates code for path param interpolation and query param encoding. v0.1 supports `style: simple` (path) and `style: form, explode: true` (query) only.
   - Notes: Method names from `operationId` (or derived from method + path). Name collision resolution via `name_resolver.dart`. Non-JSON request bodies are out of scope — operations with only non-JSON request content types get a method that accepts raw `String` body.
 
-- [ ] Task 20: Implement file writer and output coordinator
+- [x] Task 20: Implement file writer and output coordinator
   - File: `packages/dart_open_fetch_core/lib/src/generator/output_writer.dart` (create)
   - Action: Coordinate generated code output: one file per model (`models/`), one file per client class (`clients/`), one barrel export file. Apply `DartFormatter` to all output. Add generation header comment to each file (source schema, timestamp, tool version).
   - Notes: Output directory structure: `{output}/models/*.dart` (plain models + enums), `{output}/models/*.dart` (union sealed classes — same directory as models, one file per sealed class hierarchy containing base + all variants), `{output}/clients/*.dart`, `{output}/{package_name}.dart` (barrel). Union types live alongside models in `models/` since they are data types consumed the same way.
 
-- [ ] Task 21: Implement top-level generator orchestrator
+- [x] Task 21: Implement top-level generator orchestrator
   - File: `packages/dart_open_fetch_core/lib/src/generator/dart_generator.dart` (create)
   - Action: Orchestrate: take `ApiSpec` IR → generate models → generate unions → generate clients → generate barrel → write files. Single entry point: `Future<GenerateResult> generate(ApiSpec spec, String outputDir, {String? baseUrlOverride})` where `GenerateResult` contains `List<String> filesWritten` and `List<Diagnostic> diagnostics` (warnings from name collisions, unsupported param styles, non-JSON content types, etc.). The optional `baseUrlOverride` replaces the first server URL in the IR for the generated client's default base URL.
   - Notes: Composes model, union, and client generators. Formatting and file writing delegated to `OutputWriter`. Async because file writing is I/O.
@@ -517,7 +517,7 @@ No milestone can start its core work until the previous milestone's output exist
   - Action: Create barrel export for core package exporting: `OpenApiParser`, `DartGenerator`, `ParseResult`, `GenerateResult`, `Diagnostic`, `DiagnosticSeverity`, all error classes, and the `FileReader` typedef. Define `FileReader` typedef, `ParseResult`, and `GenerateResult` in `types.dart`.
   - Notes: CLI imports from this barrel. `FileReader` is `typedef FileReader = Future<Map<String, dynamic>> Function(String relativePath)` where `relativePath` is relative to the `basePath` — the caller (CLI) resolves it against the file system.
 
-- [ ] Task 22: Write golden file tests for code generator
+- [x] Task 22: Write golden file tests for code generator
   - File: `packages/dart_open_fetch_core/test/generator/model_generator_test.dart` (create)
   - File: `packages/dart_open_fetch_core/test/generator/client_generator_test.dart` (create)
   - File: `packages/dart_open_fetch_core/test/generator/union_generator_test.dart` (create)
@@ -525,35 +525,35 @@ No milestone can start its core work until the previous milestone's output exist
   - Action: Generate from fixture schemas, compare against golden files. Test model generation (simple object, nested object, enum, nullable fields, array properties), client generation (GET/POST/PUT/DELETE, path params, query params, request body, typed response), union generation (sealed class with discriminator, without discriminator).
   - Notes: Implement `--update-goldens` support via environment variable (`UPDATE_GOLDENS=true dart test`). All generated golden files must pass `dart analyze`.
 
-- [ ] Task 23: Verify generated code compiles
+- [x] Task 23: Verify generated code compiles
   - File: `packages/dart_open_fetch_core/test/generator/compile_test.dart` (create)
   - Action: Integration test that generates code from Petstore spec into a temp directory, runs `dart analyze` on the output, and asserts zero errors/warnings.
   - Notes: This is the "generated code actually works" gate. Run against all fixture schemas.
 
 ### Milestone 4: CLI Shell
 
-- [ ] Task 24: Implement CLI entry point
+- [x] Task 24: Implement CLI entry point
   - File: `packages/dart_open_fetch/bin/dart_open_fetch.dart` (create)
   - File: `packages/dart_open_fetch/lib/src/cli_runner.dart` (create)
   - Action: Set up `package:args` with `generate` command. Arguments: positional `<schema>` (URL or file path), `-o`/`--output` (output directory, defaults to `lib/api/`), `--base-url` (override server URL — passed as `baseUrlOverride` to `DartGenerator.generate()`). Parse args, invoke core parser then generator.
   - Notes: Entry point in `bin/` for `dart pub global activate dart_open_fetch`. Add `executables` section to `pubspec.yaml`. The `--base-url` flag is passed through to `DartGenerator.generate(spec, outputDir, baseUrlOverride: baseUrl)` which overrides the first server URL in the generated client's default configuration.
 
-- [ ] Task 25: Implement schema fetcher and loader (URL + file → Map)
+- [x] Task 25: Implement schema fetcher and loader (URL + file → Map)
   - File: `packages/dart_open_fetch/lib/src/schema_fetcher.dart` (create)
   - Action: Detect if schema argument is URL (starts with `http://` or `https://`) or file path. If URL, fetch content string via `package:http`. If file, read content string via `dart:io`. Detect format (JSON if starts with `{`, otherwise YAML). Parse to `Map<String, dynamic>` via `dart:convert` or `package:yaml`. Pass the parsed map + base directory path to `core`'s `OpenApiParser.parse()`. Also provide a `FileReader` callback implementation that reads relative files from disk (for `$ref` resolution).
   - Notes: **No temp file round-trip.** The CLI reads/fetches → parses → passes `Map<String, dynamic>` directly to core. **YAML deep conversion required:** `package:yaml`'s `loadYaml()` returns `YamlMap`/`YamlList`, not plain `Map<String, dynamic>`/`List`. The CLI must deep-convert YAML output to plain Dart maps/lists before passing to core (recursive conversion: `YamlMap` → `Map<String, dynamic>`, `YamlList` → `List<dynamic>`). Without this, `is Map<String, dynamic>` type checks in core will fail on `YamlMap` instances. The CLI also implements the `FileReader` callback for relative `$ref` resolution (must also deep-convert YAML in returned maps). For URL-based schemas, `basePath` is set to CWD (relative file refs from remote schemas are unsupported in v0.1). Handle HTTP errors (404, timeout, non-2xx) with clear messages.
 
-- [ ] Task 26: Implement progress reporter
+- [x] Task 26: Implement progress reporter
   - File: `packages/dart_open_fetch/lib/src/progress_reporter.dart` (create)
   - Action: Emit progress messages to stdout: `Fetching schema...`, `Parsing schema...`, `Resolving references...`, `Generating N models...`, `Generating N clients...`, `Writing files to {output}...`, `Done.`
   - Notes: Keep it simple — print statements. No fancy progress bars for v0.1.
 
-- [ ] Task 27: Create GitHub Actions CI pipeline
+- [x] Task 27: Create GitHub Actions CI pipeline
   - File: `.github/workflows/ci.yaml` (create)
   - Action: Create CI workflow that runs on push/PR: `melos bootstrap`, `melos run analyze` (dart analyze all packages), `melos run test` (dart test all packages), `melos run format-check` (dart format --set-exit-if-changed). Configure melos scripts in `melos.yaml` for these commands.
   - Notes: Fixture schemas are committed to repo, not downloaded in CI. CI runs against the committed golden files. No special matrix needed — single Dart SDK version (latest stable 3.x).
 
-- [ ] Task 28: Write CLI integration tests
+- [x] Task 28: Write CLI integration tests
   - File: `packages/dart_open_fetch/test/cli_runner_test.dart` (create)
   - File: `packages/dart_open_fetch/test/schema_fetcher_test.dart` (create)
   - Action: Test CLI arg parsing (valid args, missing args, invalid schema path). Test schema fetcher with local file. Test end-to-end: run CLI against Petstore fixture, verify output directory contains expected files, verify generated code compiles.
@@ -633,6 +633,14 @@ No milestone can start its core work until the previous milestone's output exist
 - [ ] AC 39: Given a large schema (Stripe), when the CLI runs, then progress messages are printed to stdout showing each phase (fetching, parsing, resolving, generating, writing)
 - [ ] AC 40: Given `dart pub global activate dart_open_fetch`, when `dart_open_fetch generate` is run from any directory, then the CLI executes correctly as a globally installed tool
 - [ ] AC 41: Given the CI pipeline on a fresh clone, when triggered, then all packages analyze clean, all tests pass, and formatting check passes
+
+## Review Notes
+
+- Adversarial review completed
+- Findings: 20 total, 7 fixed (F1-F8), 13 acknowledged (Low/noise)
+- Resolution approach: auto-fix
+- Fixed: exploded array query params (F1), collection equality (F2), 204 empty body handling (F3), progress message ordering (F5), `_upperCamelCase` consistency (F6), formatter error diagnostics (F7), double-formatting removal (F8)
+- Acknowledged: HTTP timeout, path joining, compile test paths, CI caching, stdout/stderr, JSON heuristic, missing unit tests, content-type matching
 
 ## Additional Context
 
