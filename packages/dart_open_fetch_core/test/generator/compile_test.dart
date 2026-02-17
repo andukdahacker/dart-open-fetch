@@ -45,7 +45,7 @@ void main() {
     test('Petstore generated code passes dart analyze', () async {
       // Parse Petstore fixture
       final rawSchema = _loadYaml(
-        'packages/dart_open_fetch_core/test/fixtures/petstore.yaml',
+        'test/fixtures/petstore.yaml',
       );
 
       final parser = OpenApiParser(
@@ -73,7 +73,7 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 dependencies:
   dart_open_fetch_runtime:
-    path: ${Directory.current.path}/packages/dart_open_fetch_runtime
+    path: ${Directory.current.parent.path}/dart_open_fetch_runtime
 ''';
       File('${tempDir.path}/pubspec.yaml').writeAsStringSync(pubspec);
 

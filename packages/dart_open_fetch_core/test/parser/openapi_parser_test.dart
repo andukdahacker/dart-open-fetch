@@ -39,7 +39,7 @@ void main() {
 
       setUpAll(() async {
         final schema = await loadYamlFixture(
-          'packages/dart_open_fetch_core/test/fixtures/petstore.yaml',
+          'test/fixtures/petstore.yaml',
         );
         final parser = OpenApiParser(fileReader: _noFileReader);
         result = await parser.parse(schema, basePath: '.');
@@ -139,7 +139,7 @@ void main() {
 
       setUpAll(() async {
         final schema = await loadYamlFixture(
-          'packages/dart_open_fetch_core/test/fixtures/github.yaml',
+          'test/fixtures/github.yaml',
         );
         final parser = OpenApiParser(fileReader: _noFileReader);
         result = await parser.parse(schema, basePath: '.');
@@ -169,7 +169,7 @@ void main() {
 
       setUpAll(() async {
         final schema = await loadYamlFixture(
-          'packages/dart_open_fetch_core/test/fixtures/stripe.yaml',
+          'test/fixtures/stripe.yaml',
         );
         final parser = OpenApiParser(fileReader: _noFileReader);
         result = await parser.parse(schema, basePath: '.');
