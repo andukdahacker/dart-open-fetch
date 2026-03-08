@@ -360,9 +360,16 @@ class ModelGenerator {
       hashArgs.add('_deepHash(additionalProperties)');
     }
 
-    final hashExpr = hashArgs.length <= 20
-        ? 'Object.hash(${hashArgs.join(', ')})'
-        : 'Object.hashAll([${hashArgs.join(', ')}])';
+    final String hashExpr;
+    if (hashArgs.isEmpty) {
+      hashExpr = '0';
+    } else if (hashArgs.length == 1) {
+      hashExpr = '${hashArgs.first}.hashCode';
+    } else if (hashArgs.length <= 20) {
+      hashExpr = 'Object.hash(${hashArgs.join(', ')})';
+    } else {
+      hashExpr = 'Object.hashAll([${hashArgs.join(', ')}])';
+    }
 
     return Method((b) {
       b.name = 'hashCode';

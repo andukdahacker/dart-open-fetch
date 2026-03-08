@@ -100,6 +100,54 @@ class ApiSchema {
   bool get hasNamedAndAdditionalProperties =>
       isObject && properties.isNotEmpty && hasAdditionalProperties;
 
+  /// Create a copy with optional field overrides.
+  ApiSchema copyWith({
+    String? name,
+    SchemaType? type,
+    String? format,
+    String? description,
+    List<ApiProperty>? properties,
+    Set<String>? requiredProperties,
+    ApiSchema? items,
+    ApiSchema? additionalProperties,
+    bool? hasAdditionalProperties,
+    List<String>? enumValues,
+    List<ApiSchema>? allOf,
+    List<ApiSchema>? oneOf,
+    List<ApiSchema>? anyOf,
+    ApiDiscriminator? discriminator,
+    bool? nullable,
+    Object? defaultValue,
+    bool? deprecated,
+    bool? isCircularRef,
+    String? refTarget,
+    String? schemaPath,
+  }) {
+    return ApiSchema(
+      name: name ?? this.name,
+      type: type ?? this.type,
+      format: format ?? this.format,
+      description: description ?? this.description,
+      properties: properties ?? this.properties,
+      requiredProperties: requiredProperties ?? this.requiredProperties,
+      items: items ?? this.items,
+      additionalProperties: additionalProperties ?? this.additionalProperties,
+      hasAdditionalProperties:
+          hasAdditionalProperties ?? this.hasAdditionalProperties,
+      enumValues: enumValues ?? this.enumValues,
+      allOf: allOf ?? this.allOf,
+      oneOf: oneOf ?? this.oneOf,
+      anyOf: anyOf ?? this.anyOf,
+      discriminator: discriminator ?? this.discriminator,
+      nullable: nullable ?? this.nullable,
+      defaultValue: defaultValue ?? this.defaultValue,
+      deprecated: deprecated ?? this.deprecated,
+      isCircularRef: isCircularRef ?? this.isCircularRef,
+      refTarget: refTarget ?? this.refTarget,
+      schemaPath: schemaPath ?? this.schemaPath,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -130,6 +178,21 @@ class ApiProperty {
   final ApiSchema schema;
   final String? description;
   final bool deprecated;
+
+  /// Create a copy with optional field overrides.
+  ApiProperty copyWith({
+    String? name,
+    ApiSchema? schema,
+    String? description,
+    bool? deprecated,
+  }) {
+    return ApiProperty(
+      name: name ?? this.name,
+      schema: schema ?? this.schema,
+      description: description ?? this.description,
+      deprecated: deprecated ?? this.deprecated,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>

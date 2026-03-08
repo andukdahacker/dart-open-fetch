@@ -20,12 +20,18 @@ class OutputWriter {
     required this.nameResolver,
     this.schemaSource,
     this.toolVersion = '0.1.0',
+    this.packageName,
   });
 
   final String outputDir;
   final NameResolver nameResolver;
   final String? schemaSource;
   final String toolVersion;
+
+  /// Dart package name for `package:` imports.
+  /// When set and output dir is inside `lib/`, client imports use
+  /// `package:` style instead of relative `../` style.
+  final String? packageName;
 
   final List<String> _writtenFiles = [];
   final _formatter = DartFormatter(languageVersion: Version(3, 5, 0));
@@ -104,7 +110,7 @@ class OutputWriter {
 
   /// Inject a models import into client source code.
   String _injectModelsImport(String source, String modelsFileName) {
-    final importLine = "import '../$modelsFileName';";
+    final importLine = _modelsImportLine(modelsFileName);
 
     // Insert after the last existing import statement
     final lastImportMatch =
@@ -118,6 +124,21 @@ class OutputWriter {
     }
 
     return '$importLine\n$source';
+  }
+
+  /// Build the import line for models.
+  ///
+  /// Uses `package:` import when [packageName] is set and [outputDir]
+  /// is inside a `lib/` directory. Falls back to relative import.
+  String _modelsImportLine(String modelsFileName) {
+    if (packageName != null) {
+      final libIndex = outputDir.indexOf('lib/');
+      if (libIndex >= 0) {
+        final relativeFromLib = outputDir.substring(libIndex + 4);
+        return "import 'package:$packageName/$relativeFromLib/$modelsFileName';";
+      }
+    }
+    return "import '../$modelsFileName';";
   }
 
   Future<void> _writeFile(String path, String content) async {

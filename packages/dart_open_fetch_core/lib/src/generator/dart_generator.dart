@@ -3,6 +3,7 @@ import '../ir/api_info.dart';
 import '../ir/api_spec.dart';
 import '../types.dart';
 import 'client_generator.dart';
+import 'inline_schema_resolver.dart';
 import 'model_generator.dart';
 import 'name_resolver.dart';
 import 'output_writer.dart';
@@ -17,10 +18,16 @@ class DartGenerator {
   DartGenerator({
     this.schemaSource,
     this.toolVersion = '0.1.0',
+    this.packageName,
   });
 
   final String? schemaSource;
   final String toolVersion;
+
+  /// Dart package name for generating `package:` imports.
+  /// When set and output is inside `lib/`, client files use
+  /// `package:` imports instead of relative imports.
+  final String? packageName;
 
   /// Generate Dart code from a parsed OpenAPI spec.
   ///
@@ -66,13 +73,19 @@ class DartGenerator {
       nameResolver: nameResolver,
       schemaSource: schemaSource,
       toolVersion: toolVersion,
+      packageName: packageName,
     );
 
     final clientFileNames = <String>[];
 
+    // 0. Resolve unnamed inline schemas (objects & enums) before generation
+    final inlineResolver = InlineSchemaResolver();
+    final resolvedSchemas = inlineResolver.resolve(effectiveSpec.schemas);
+    final allSchemas = [...resolvedSchemas, ...inlineResolver.generatedSchemas];
+
     // 1. Generate all models into a single models.dart file
     final modelSources = <String>[];
-    for (final schema in effectiveSpec.schemas) {
+    for (final schema in allSchemas) {
       if (schema.name == null) continue;
       if (schema.isCircularRef) continue;
 
@@ -113,8 +126,9 @@ class DartGenerator {
     }
 
     // 3. Generate barrel export
-    final packageName = _derivePackageName(effectiveSpec.info.title);
-    await writer.writeBarrel(packageName, modelsFileName, clientFileNames);
+    final barrelPackageName = _derivePackageName(effectiveSpec.info.title);
+    await writer.writeBarrel(
+        barrelPackageName, modelsFileName, clientFileNames);
 
     // Collect all diagnostics
     diagnostics.addAll(nameResolver.diagnostics);

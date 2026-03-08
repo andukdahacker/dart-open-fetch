@@ -187,6 +187,63 @@ void main() {
     });
   });
 
+  group('hashCode generation', () {
+    test('generates valid hashCode for 0 properties', () {
+      final schema = ApiSchema(
+        name: 'Empty',
+        type: SchemaType.object,
+        properties: [],
+      );
+
+      final output = generator.generateModel(schema);
+      expect(output, contains('int get hashCode'));
+      expect(output, contains('0'));
+      // Must NOT contain Object.hash() with no args
+      expect(output, isNot(contains('Object.hash()')));
+    });
+
+    test('generates valid hashCode for 1 property', () {
+      final schema = ApiSchema(
+        name: 'Single',
+        type: SchemaType.object,
+        properties: [
+          ApiProperty(
+            name: 'id',
+            schema: ApiSchema(type: SchemaType.integer),
+          ),
+        ],
+        requiredProperties: {'id'},
+      );
+
+      final output = generator.generateModel(schema);
+      expect(output, contains('int get hashCode'));
+      expect(output, contains('id.hashCode'));
+      // Must NOT contain Object.hash(id) — single arg is invalid
+      expect(output, isNot(contains('Object.hash(id)')));
+    });
+
+    test('generates Object.hash for 2 properties', () {
+      final schema = ApiSchema(
+        name: 'Pair',
+        type: SchemaType.object,
+        properties: [
+          ApiProperty(
+            name: 'a',
+            schema: ApiSchema(type: SchemaType.integer),
+          ),
+          ApiProperty(
+            name: 'b',
+            schema: ApiSchema(type: SchemaType.string),
+          ),
+        ],
+        requiredProperties: {'a', 'b'},
+      );
+
+      final output = generator.generateModel(schema);
+      expect(output, contains('Object.hash(a, b)'));
+    });
+  });
+
   group('Enum generation', () {
     test('generates basic enum', () {
       final schema = ApiSchema(

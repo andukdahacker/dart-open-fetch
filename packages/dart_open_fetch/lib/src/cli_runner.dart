@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:dart_open_fetch_core/dart_open_fetch_core.dart';
+import 'package:yaml/yaml.dart';
 
 import 'progress_reporter.dart';
 import 'schema_fetcher.dart';
@@ -14,6 +17,9 @@ Future<int> runCli(List<String> arguments) async {
     ..addOption('output',
         abbr: 'o', defaultsTo: 'lib/api/', help: 'Output directory.')
     ..addOption('base-url', help: 'Override the server base URL.')
+    ..addOption('package',
+        help: 'Dart package name for package: imports. '
+            'Auto-detected from pubspec.yaml if not specified.')
     ..addFlag('help', abbr: 'h', negatable: false, help: 'Show usage help.');
 
   final ArgResults results;
@@ -53,11 +59,14 @@ Future<int> runCli(List<String> arguments) async {
   final schemaPath = generateResults.rest.first;
   final outputDir = generateResults.option('output')!;
   final baseUrl = generateResults.option('base-url');
+  final packageName =
+      generateResults.option('package') ?? _detectPackageName(outputDir);
 
   return _runGenerate(
     schemaPath: schemaPath,
     outputDir: outputDir,
     baseUrl: baseUrl,
+    packageName: packageName,
   );
 }
 
@@ -65,6 +74,7 @@ Future<int> _runGenerate({
   required String schemaPath,
   required String outputDir,
   String? baseUrl,
+  String? packageName,
 }) async {
   final reporter = ProgressReporter();
   final fetcher = SchemaFetcher();
@@ -111,6 +121,7 @@ Future<int> _runGenerate({
   final generator = DartGenerator(
     schemaSource: schemaPath,
     toolVersion: '0.1.0',
+    packageName: packageName,
   );
 
   final generateResult = await generator.generate(
@@ -127,6 +138,31 @@ Future<int> _runGenerate({
   reporter.done(generateResult.filesWritten.length);
 
   return 0;
+}
+
+/// Walk up from [outputDir] looking for a pubspec.yaml and read its `name:`.
+String? _detectPackageName(String outputDir) {
+  var dir = Directory(outputDir).absolute;
+  // Walk up at most 10 levels to find pubspec.yaml
+  for (var i = 0; i < 10; i++) {
+    final pubspec = File('${dir.path}/pubspec.yaml');
+    if (pubspec.existsSync()) {
+      try {
+        final content = pubspec.readAsStringSync();
+        final yaml = loadYaml(content);
+        if (yaml is YamlMap && yaml['name'] is String) {
+          return yaml['name'] as String;
+        }
+      } catch (_) {
+        // Ignore parse errors
+      }
+      return null;
+    }
+    final parent = dir.parent;
+    if (parent.path == dir.path) break; // reached root
+    dir = parent;
+  }
+  return null;
 }
 
 void _printUsage(ArgParser parser) {
