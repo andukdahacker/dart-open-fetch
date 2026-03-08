@@ -4,6 +4,7 @@ class ApiException implements Exception {
     required this.statusCode,
     required this.body,
     this.headers = const {},
+    this.parsedBody,
   });
 
   /// HTTP status code.
@@ -14,6 +15,9 @@ class ApiException implements Exception {
 
   /// Response headers.
   final Map<String, String> headers;
+
+  /// Parsed error body, if the error response has a typed schema.
+  final Object? parsedBody;
 
   @override
   String toString() => 'ApiException($statusCode: $body)';

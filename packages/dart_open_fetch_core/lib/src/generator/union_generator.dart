@@ -57,6 +57,12 @@ class UnionGenerator {
     List<ApiSchema> variants,
     ApiDiscriminator? discriminator,
   ) {
+    if (schema.description != null && schema.description!.isNotEmpty) {
+      for (final line in schema.description!.split('\n')) {
+        buf.writeln('/// ${line.trimRight()}');
+      }
+    }
+
     if (schema.deprecated) {
       buf.writeln("@Deprecated('Deprecated in API spec')");
     }

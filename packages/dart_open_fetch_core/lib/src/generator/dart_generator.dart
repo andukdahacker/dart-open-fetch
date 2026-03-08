@@ -1,8 +1,10 @@
 import '../diagnostic.dart';
 import '../ir/api_info.dart';
+import '../ir/api_schema.dart';
 import '../ir/api_spec.dart';
 import '../types.dart';
 import 'client_generator.dart';
+import 'enum_deduplicator.dart';
 import 'inline_schema_resolver.dart';
 import 'model_generator.dart';
 import 'name_resolver.dart';
@@ -17,8 +19,12 @@ import 'union_generator.dart';
 class DartGenerator {
   DartGenerator({
     this.schemaSource,
-    this.toolVersion = '0.1.0',
+    this.toolVersion = '0.2.0',
     this.packageName,
+    this.stripAdditionalProperties = false,
+    this.skipUnusedSchemas = false,
+    this.deduplicateEnums = false,
+    this.clientNameOverride,
   });
 
   final String? schemaSource;
@@ -28,6 +34,18 @@ class DartGenerator {
   /// When set and output is inside `lib/`, client files use
   /// `package:` imports instead of relative imports.
   final String? packageName;
+
+  /// When true, strip `hasAdditionalProperties` from all schemas.
+  final bool stripAdditionalProperties;
+
+  /// When true, only generate schemas referenced by operations.
+  final bool skipUnusedSchemas;
+
+  /// When true, deduplicate enum schemas with identical value sets.
+  final bool deduplicateEnums;
+
+  /// Override client class name (skip tag grouping, single client).
+  final String? clientNameOverride;
 
   /// Generate Dart code from a parsed OpenAPI spec.
   ///
@@ -66,6 +84,7 @@ class DartGenerator {
     final clientGen = ClientGenerator(
       nameResolver: nameResolver,
       parameterSerializer: paramSerializer,
+      clientNameOverride: clientNameOverride,
     );
 
     final writer = OutputWriter(
@@ -81,7 +100,30 @@ class DartGenerator {
     // 0. Resolve unnamed inline schemas (objects & enums) before generation
     final inlineResolver = InlineSchemaResolver();
     final resolvedSchemas = inlineResolver.resolve(effectiveSpec.schemas);
-    final allSchemas = [...resolvedSchemas, ...inlineResolver.generatedSchemas];
+    var allSchemas = [...resolvedSchemas, ...inlineResolver.generatedSchemas];
+
+    // 0a. Strip additionalProperties if requested
+    if (stripAdditionalProperties) {
+      allSchemas = allSchemas
+          .map((s) => s.hasAdditionalProperties
+              ? s.copyWith(hasAdditionalProperties: false)
+              : s)
+          .toList();
+    }
+
+    // 0b. Deduplicate enums if requested
+    if (deduplicateEnums) {
+      final deduplicator = EnumDeduplicator();
+      allSchemas = deduplicator.deduplicate(allSchemas);
+    }
+
+    // 0c. Skip unused schemas if requested
+    if (skipUnusedSchemas) {
+      final usedNames = _collectUsedSchemaNames(effectiveSpec, allSchemas);
+      allSchemas = allSchemas
+          .where((s) => s.name == null || usedNames.contains(s.name))
+          .toList();
+    }
 
     // 1. Generate all models into a single models.dart file
     final modelSources = <String>[];
@@ -141,6 +183,62 @@ class DartGenerator {
       filesWritten: writer.writtenFiles,
       diagnostics: diagnostics,
     );
+  }
+
+  /// Recursively collect all schema names referenced from operations.
+  Set<String> _collectUsedSchemaNames(
+      ApiSpec spec, List<ApiSchema> allSchemas) {
+    final used = <String>{};
+    final schemaMap = <String, ApiSchema>{};
+    for (final s in allSchemas) {
+      if (s.name != null) schemaMap[s.name!] = s;
+    }
+
+    void walkSchema(ApiSchema schema) {
+      if (schema.isCircularRef && schema.refTarget != null) {
+        if (used.add(schema.refTarget!) &&
+            schemaMap.containsKey(schema.refTarget!)) {
+          walkSchema(schemaMap[schema.refTarget!]!);
+        }
+        return;
+      }
+      if (schema.name != null) {
+        if (!used.add(schema.name!)) return; // already visited
+      }
+      for (final prop in schema.properties) {
+        walkSchema(prop.schema);
+      }
+      if (schema.items != null) walkSchema(schema.items!);
+      if (schema.additionalProperties != null) {
+        walkSchema(schema.additionalProperties!);
+      }
+      for (final s in schema.oneOf) {
+        walkSchema(s);
+      }
+      for (final s in schema.anyOf) {
+        walkSchema(s);
+      }
+      for (final s in schema.allOf) {
+        walkSchema(s);
+      }
+    }
+
+    for (final path in spec.paths) {
+      for (final op in path.operations) {
+        if (op.requestBody?.jsonSchema != null) {
+          walkSchema(op.requestBody!.jsonSchema!);
+        }
+        for (final resp in op.responses) {
+          final jsonSchema = resp.jsonSchema;
+          if (jsonSchema != null) walkSchema(jsonSchema);
+        }
+        for (final param in op.parameters) {
+          walkSchema(param.schema);
+        }
+      }
+    }
+
+    return used;
   }
 
   ApiSpec _withBaseUrlOverride(ApiSpec spec, String baseUrl) {

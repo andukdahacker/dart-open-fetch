@@ -28,10 +28,12 @@ class ClientGenerator {
   ClientGenerator({
     required this.nameResolver,
     required this.parameterSerializer,
+    this.clientNameOverride,
   });
 
   final NameResolver nameResolver;
   final ParameterSerializer parameterSerializer;
+  final String? clientNameOverride;
   final List<Diagnostic> diagnostics = [];
 
   /// Generate all client classes from the spec.
@@ -47,6 +49,13 @@ class ClientGenerator {
     }
 
     if (allOps.isEmpty) return [];
+
+    // If client name is overridden, skip tag grouping
+    if (clientNameOverride != null) {
+      return [
+        _generateClientClass(clientNameOverride!, allOps, spec),
+      ];
+    }
 
     // Group operations by tag
     final grouped = <String, List<_OperationWithPath>>{};
@@ -145,6 +154,14 @@ class ClientGenerator {
       hasTypedResponse = false;
     }
 
+    // Doc comment
+    final docText = operation.summary ?? operation.description;
+    if (docText != null && docText.isNotEmpty) {
+      for (final line in docText.split('\n')) {
+        buf.writeln('  /// ${line.trimRight()}');
+      }
+    }
+
     // Deprecated annotation
     if (operation.deprecated) {
       buf.writeln("  @Deprecated('Deprecated in API spec')");
@@ -185,7 +202,7 @@ class ClientGenerator {
 
     // Handle response
     if (hasTypedResponse) {
-      _writeResponseDeserialization(buf, jsonSchema!);
+      _writeResponseDeserialization(buf, jsonSchema!, operation);
     } else {
       buf.writeln('    return response;');
     }
@@ -337,6 +354,7 @@ class ClientGenerator {
   void _writeResponseDeserialization(
     StringBuffer buf,
     ApiSchema jsonSchema,
+    ApiOperation operation,
   ) {
     buf.writeln(
         '    if (response.statusCode >= 200 && response.statusCode < 300) {');
@@ -356,11 +374,51 @@ class ClientGenerator {
     buf.writeln('        headers: response.headers,');
     buf.writeln('      );');
     buf.writeln('    }');
-    buf.writeln('    throw ApiException(');
-    buf.writeln('      statusCode: response.statusCode,');
-    buf.writeln('      body: response.body,');
-    buf.writeln('      headers: response.headers,');
-    buf.writeln('    );');
+
+    // Check for typed error responses (4xx/5xx with JSON schemas)
+    final errorResponses = operation.responses.where((r) {
+      final code = r.statusCode;
+      return (code.startsWith('4') || code.startsWith('5')) &&
+          code.length == 3 &&
+          r.jsonSchema != null;
+    }).toList();
+
+    if (errorResponses.isNotEmpty) {
+      buf.writeln('    Object? parsedError;');
+      buf.writeln('    try {');
+      buf.writeln('      final errorJson = jsonDecode(response.body);');
+      if (errorResponses.length == 1) {
+        final errSchema = errorResponses.first.jsonSchema!;
+        final errExpr = _fromJsonExpression('errorJson', errSchema);
+        buf.writeln('      parsedError = $errExpr;');
+      } else {
+        // Multiple error responses — match by status code
+        buf.writeln('      switch (response.statusCode) {');
+        for (final resp in errorResponses) {
+          final errSchema = resp.jsonSchema!;
+          final errExpr = _fromJsonExpression('errorJson', errSchema);
+          buf.writeln('        case ${resp.statusCode}:');
+          buf.writeln('          parsedError = $errExpr;');
+        }
+        buf.writeln('      }');
+      }
+      buf.writeln('    } catch (_) {');
+      buf.writeln(
+          '      // Failed to parse error body — leave parsedError null');
+      buf.writeln('    }');
+      buf.writeln('    throw ApiException(');
+      buf.writeln('      statusCode: response.statusCode,');
+      buf.writeln('      body: response.body,');
+      buf.writeln('      headers: response.headers,');
+      buf.writeln('      parsedBody: parsedError,');
+      buf.writeln('    );');
+    } else {
+      buf.writeln('    throw ApiException(');
+      buf.writeln('      statusCode: response.statusCode,');
+      buf.writeln('      body: response.body,');
+      buf.writeln('      headers: response.headers,');
+      buf.writeln('    );');
+    }
   }
 
   String _schemaToDartType(ApiSchema schema) {
@@ -375,6 +433,9 @@ class ClientGenerator {
     }
     if (schema.isEnum && schema.name != null) {
       return nameResolver.resolveClassName(schema.name!);
+    }
+    if (schema.type == SchemaType.string && schema.format == 'date-time') {
+      return 'DateTime';
     }
     return switch (schema.type) {
       SchemaType.string => 'String',
@@ -407,6 +468,9 @@ class ClientGenerator {
       final className = nameResolver.resolveClassName(schema.name!);
       return '$className.fromJson($accessor as Map<String, dynamic>)';
     }
+    if (schema.type == SchemaType.string && schema.format == 'date-time') {
+      return 'DateTime.parse($accessor as String)';
+    }
     return switch (schema.type) {
       SchemaType.string => '$accessor as String',
       SchemaType.integer => '($accessor as num).toInt()',
@@ -425,6 +489,9 @@ class ClientGenerator {
   bool _needsToJson(ApiSchema schema) {
     if (schema.isEnum && schema.name != null) return true;
     if (schema.name != null && (schema.isObject || schema.isComposed)) {
+      return true;
+    }
+    if (schema.type == SchemaType.string && schema.format == 'date-time') {
       return true;
     }
     return false;

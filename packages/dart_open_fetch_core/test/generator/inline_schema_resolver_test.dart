@@ -148,7 +148,7 @@ void main() {
         ),
       ];
 
-      final resolved = resolver.resolve(schemas);
+      resolver.resolve(schemas);
       // Should have generated schemas for both level1 and level2
       expect(resolver.generatedSchemas.length, greaterThanOrEqualTo(2));
 

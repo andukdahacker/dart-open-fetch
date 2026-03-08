@@ -97,6 +97,11 @@ dart_open_fetch generate <schema> [options]
 |---|---|---|
 | `-o`, `--output` | `lib/api/` | Output directory for generated code |
 | `--base-url` | *(from schema)* | Override the server base URL |
+| `--package` | *(auto-detected)* | Dart package name for `package:` imports |
+| `--client-name` | *(from tags/title)* | Override client class name (single client, no tag grouping) |
+| `--no-additional-properties` | | Strip `additionalProperties` from all schemas |
+| `--skip-unused-schemas` | | Only generate schemas referenced by operations |
+| `--deduplicate-enums` | | Merge enum schemas with identical value sets |
 | `-h`, `--help` | | Show usage help |
 
 The schema can be a local file or a remote URL:
@@ -265,6 +270,20 @@ See [`examples/dart_console/`](examples/dart_console/).
 A Flutter app demonstrating the generated client in a mobile/web context.
 
 See [`examples/flutter_app/`](examples/flutter_app/).
+
+## Troubleshooting
+
+### Stale JIT snapshot after upgrade
+
+When you update `dart_open_fetch` via `dart pub global activate`, Dart may continue using a cached JIT snapshot from the previous version. Symptoms include unexpected behavior or errors after upgrading.
+
+To fix, clear the snapshot cache:
+
+```bash
+rm -rf ~/.pub-cache/global_packages/dart_open_fetch/bin/
+```
+
+Then re-run `dart_open_fetch` — Dart will rebuild the snapshot automatically.
 
 ## Development
 

@@ -39,6 +39,10 @@ class ModelGenerator {
     return Class((b) {
       b.name = className;
 
+      if (schema.description != null && schema.description!.isNotEmpty) {
+        b.docs.addAll(_formatDocComment(schema.description!));
+      }
+
       if (schema.deprecated) {
         b.annotations.add(
           refer("Deprecated").call([literalString('Deprecated in API spec')]),
@@ -48,6 +52,7 @@ class ModelGenerator {
       // Constructor
       b.constructors.add(_buildConstructor(
         properties,
+        schema.requiredProperties,
         hasAdditionalProps: hasAdditionalProps,
         additionalPropsSchema: additionalPropsSchema,
       ));
@@ -104,7 +109,8 @@ class ModelGenerator {
   }
 
   Constructor _buildConstructor(
-    List<ApiProperty> properties, {
+    List<ApiProperty> properties,
+    Set<String> requiredProperties, {
     required bool hasAdditionalProps,
     ApiSchema? additionalPropsSchema,
   }) {
@@ -114,8 +120,9 @@ class ModelGenerator {
         b.optionalParameters.add(Parameter((p) {
           p.name = NameResolver.resolveFieldName(prop.name);
           p.named = true;
-          p.required =
-              prop.schema.nullable == false && prop.schema.defaultValue == null;
+          final isInRequired = requiredProperties.contains(prop.name);
+          final isNullableType = !isInRequired || prop.schema.nullable;
+          p.required = !isNullableType && prop.schema.defaultValue == null;
           p.toThis = true;
         }));
       }
@@ -139,6 +146,10 @@ class ModelGenerator {
       b.name = fieldName;
       b.modifier = FieldModifier.final$;
       b.type = refer(dartType);
+      final desc = prop.description ?? prop.schema.description;
+      if (desc != null && desc.isNotEmpty) {
+        b.docs.addAll(_formatDocComment(desc));
+      }
       if (prop.deprecated) {
         b.annotations.add(
           refer("Deprecated").call([literalString('Deprecated in API spec')]),
@@ -407,6 +418,10 @@ class ModelGenerator {
     return Enum((b) {
       b.name = enumName;
 
+      if (schema.description != null && schema.description!.isNotEmpty) {
+        b.docs.addAll(_formatDocComment(schema.description!));
+      }
+
       if (schema.deprecated) {
         b.annotations.add(
           refer("Deprecated").call([literalString('Deprecated in API spec')]),
@@ -500,6 +515,9 @@ $cases
 
     switch (schema.type) {
       case SchemaType.string:
+        if (schema.format == 'date-time') {
+          return 'DateTime$nullSuffix';
+        }
         return 'String$nullSuffix';
       case SchemaType.integer:
         return 'int$nullSuffix';
@@ -574,6 +592,12 @@ $cases
 
     switch (schema.type) {
       case SchemaType.string:
+        if (schema.format == 'date-time') {
+          if (isNullable) {
+            return '$accessor != null ? DateTime.parse($accessor as String) : null';
+          }
+          return 'DateTime.parse($accessor as String)';
+        }
         if (isNullable) return '$accessor as String?';
         return '$accessor as String';
       case SchemaType.integer:
@@ -642,6 +666,9 @@ $cases
     }
     switch (schema.type) {
       case SchemaType.string:
+        if (schema.format == 'date-time') {
+          return 'DateTime.parse($accessor as String)';
+        }
         return '$accessor as String';
       case SchemaType.integer:
         return '($accessor as num).toInt()';
@@ -688,6 +715,11 @@ $cases
 
     switch (schema.type) {
       case SchemaType.string:
+        if (schema.format == 'date-time') {
+          if (isNullable) return '$fieldName?.toIso8601String()';
+          return '$fieldName.toIso8601String()';
+        }
+        return fieldName;
       case SchemaType.integer:
       case SchemaType.number:
       case SchemaType.boolean:
@@ -724,6 +756,9 @@ $cases
     if (schema.name != null && (schema.isObject || schema.isComposed)) {
       return '$accessor.toJson()';
     }
+    if (schema.type == SchemaType.string && schema.format == 'date-time') {
+      return '$accessor.toIso8601String()';
+    }
     if (schema.isArray && schema.items != null && _needsToJson(schema.items!)) {
       final inner = _toJsonListItem('i', schema.items!);
       return '$accessor.map((i) => $inner).toList()';
@@ -736,6 +771,9 @@ $cases
     if (schema.name != null && (schema.isObject || schema.isComposed)) {
       return true;
     }
+    if (schema.type == SchemaType.string && schema.format == 'date-time') {
+      return true;
+    }
     if (schema.isArray && schema.items != null) {
       return _needsToJson(schema.items!);
     }
@@ -745,6 +783,10 @@ $cases
   List<ApiProperty> _resolveProperties(ApiSchema schema) {
     // For allOf schemas, properties should already be flattened by the parser.
     return schema.properties;
+  }
+
+  static List<String> _formatDocComment(String description) {
+    return description.split('\n').map((l) => '/// ${l.trimRight()}').toList();
   }
 
   String _emit(Library library) {

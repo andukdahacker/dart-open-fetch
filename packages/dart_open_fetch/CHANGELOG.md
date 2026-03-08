@@ -1,3 +1,16 @@
+## 0.2.0
+
+### New CLI flags
+- `--client-name` — Override client class name (single client, no tag grouping).
+- `--no-additional-properties` — Strip `additionalProperties` from all schemas.
+- `--skip-unused-schemas` — Only generate schemas referenced by operations.
+- `--deduplicate-enums` — Merge enum schemas with identical value sets.
+
+### Improvements
+- Generated code now includes `///` doc comments from OpenAPI descriptions.
+- `format: date-time` fields generate as `DateTime` with proper serialization.
+- Typed error response parsing via `ApiException.parsedBody`.
+
 ## 0.1.0
 
 - Initial release.

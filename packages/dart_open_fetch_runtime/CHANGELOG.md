@@ -1,3 +1,7 @@
+## 0.2.0
+
+- Add optional `parsedBody` field to `ApiException` for typed error response data.
+
 ## 0.1.0
 
 - Initial release.
