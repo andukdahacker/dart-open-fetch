@@ -1,6 +1,6 @@
 name: dart_open_fetch
 description: CLI tool that generates fully-typed Dart HTTP clients from OpenAPI 3.0/3.1 specifications.
-version: 0.2.0
+version: 0.3.0
 repository: https://github.com/andukdahacker/dart-open-fetch
 issue_tracker: https://github.com/andukdahacker/dart-open-fetch/issues
 topics:
@@ -21,7 +21,7 @@ dependencies:
   args: ^2.4.0
   http: ^1.1.0
   yaml: ^3.1.0
-  dart_open_fetch_core: ^0.2.0
+  dart_open_fetch_core: ^0.3.0
 
 dev_dependencies:
   lints: ^5.0.0

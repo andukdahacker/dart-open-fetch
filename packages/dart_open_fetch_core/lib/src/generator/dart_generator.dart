@@ -11,6 +11,7 @@ import 'name_resolver.dart';
 import 'output_writer.dart';
 import 'parameter_serializer.dart';
 import 'union_generator.dart';
+import 'wrapper_generator.dart';
 
 /// Top-level orchestrator: ApiSpec IR → generated Dart files.
 ///
@@ -19,12 +20,13 @@ import 'union_generator.dart';
 class DartGenerator {
   DartGenerator({
     this.schemaSource,
-    this.toolVersion = '0.2.0',
+    this.toolVersion = '0.3.0',
     this.packageName,
     this.stripAdditionalProperties = false,
     this.skipUnusedSchemas = false,
     this.deduplicateEnums = false,
     this.clientNameOverride,
+    this.generateWrapper = false,
   });
 
   final String? schemaSource;
@@ -46,6 +48,9 @@ class DartGenerator {
 
   /// Override client class name (skip tag grouping, single client).
   final String? clientNameOverride;
+
+  /// When true, generate thin service wrappers around client classes.
+  final bool generateWrapper;
 
   /// Generate Dart code from a parsed OpenAPI spec.
   ///
@@ -167,10 +172,30 @@ class DartGenerator {
       clientFileNames.add(_fileName(path));
     }
 
+    // 2b. Generate wrapper classes if requested
+    final wrapperFileNames = <String>[];
+    if (generateWrapper) {
+      final wrapperGen = WrapperGenerator(
+        nameResolver: nameResolver,
+        clientNameOverride: clientNameOverride,
+      );
+      final wrappers = wrapperGen.generateWrappers(effectiveSpec);
+      for (final wrapper in wrappers) {
+        final headerSource = writer.addHeader(wrapper.source);
+        final path = await writer.writeWrapper(
+          wrapper.className,
+          wrapper.clientClassName,
+          headerSource,
+          modelsFileName: modelsFileName,
+        );
+        wrapperFileNames.add(_fileName(path));
+      }
+    }
+
     // 3. Generate barrel export
     final barrelPackageName = _derivePackageName(effectiveSpec.info.title);
-    await writer.writeBarrel(
-        barrelPackageName, modelsFileName, clientFileNames);
+    await writer.writeBarrel(barrelPackageName, modelsFileName, clientFileNames,
+        wrapperFileNames: wrapperFileNames);
 
     // Collect all diagnostics
     diagnostics.addAll(nameResolver.diagnostics);
@@ -194,7 +219,8 @@ class DartGenerator {
       if (s.name != null) schemaMap[s.name!] = s;
     }
 
-    void walkSchema(ApiSchema schema) {
+    void walkSchema(ApiSchema originalSchema) {
+      var schema = originalSchema;
       if (schema.isCircularRef && schema.refTarget != null) {
         if (used.add(schema.refTarget!) &&
             schemaMap.containsKey(schema.refTarget!)) {
@@ -204,6 +230,9 @@ class DartGenerator {
       }
       if (schema.name != null) {
         if (!used.add(schema.name!)) return; // already visited
+        // Walk the resolved version to discover inline enum names
+        final resolved = schemaMap[schema.name!];
+        if (resolved != null) schema = resolved;
       }
       for (final prop in schema.properties) {
         walkSchema(prop.schema);

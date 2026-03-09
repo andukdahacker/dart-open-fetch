@@ -43,4 +43,22 @@ class HttpRequest {
 
   @override
   String toString() => 'HttpRequest($method $url)';
+
+  /// Returns a copy of this request with the given fields replaced.
+  ///
+  /// Note: `copyWith(body: null)` keeps the existing body (standard Dart
+  /// convention). To remove the body, create a new [HttpRequest] directly.
+  HttpRequest copyWith({
+    String? method,
+    Uri? url,
+    Map<String, String>? headers,
+    String? body,
+  }) {
+    return HttpRequest(
+      method: method ?? this.method,
+      url: url ?? this.url,
+      headers: headers ?? this.headers,
+      body: body ?? this.body,
+    );
+  }
 }

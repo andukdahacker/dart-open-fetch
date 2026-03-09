@@ -30,6 +30,9 @@ Future<int> runCli(List<String> arguments) async {
         help: 'Only generate schemas referenced by operations.')
     ..addFlag('deduplicate-enums',
         negatable: false, help: 'Merge enum schemas with identical value sets.')
+    ..addFlag('wrapper',
+        negatable: false,
+        help: 'Generate thin service wrappers around client classes.')
     ..addFlag('help', abbr: 'h', negatable: false, help: 'Show usage help.');
 
   final ArgResults results;
@@ -76,6 +79,7 @@ Future<int> runCli(List<String> arguments) async {
       generateResults.flag('no-additional-properties');
   final skipUnusedSchemas = generateResults.flag('skip-unused-schemas');
   final deduplicateEnums = generateResults.flag('deduplicate-enums');
+  final generateWrapperFlag = generateResults.flag('wrapper');
 
   return _runGenerate(
     schemaPath: schemaPath,
@@ -86,6 +90,7 @@ Future<int> runCli(List<String> arguments) async {
     stripAdditionalProperties: noAdditionalProperties,
     skipUnusedSchemas: skipUnusedSchemas,
     deduplicateEnums: deduplicateEnums,
+    generateWrapper: generateWrapperFlag,
   );
 }
 
@@ -98,6 +103,7 @@ Future<int> _runGenerate({
   bool stripAdditionalProperties = false,
   bool skipUnusedSchemas = false,
   bool deduplicateEnums = false,
+  bool generateWrapper = false,
 }) async {
   final reporter = ProgressReporter();
   final fetcher = SchemaFetcher();
@@ -143,12 +149,13 @@ Future<int> _runGenerate({
 
   final generator = DartGenerator(
     schemaSource: schemaPath,
-    toolVersion: '0.2.0',
+    toolVersion: '0.3.0',
     packageName: packageName,
     stripAdditionalProperties: stripAdditionalProperties,
     skipUnusedSchemas: skipUnusedSchemas,
     deduplicateEnums: deduplicateEnums,
     clientNameOverride: clientName,
+    generateWrapper: generateWrapper,
   );
 
   final generateResult = await generator.generate(

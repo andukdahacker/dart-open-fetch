@@ -71,7 +71,8 @@ void main() {
       expect(clients, hasLength(1));
       final source = clients.first.source;
       expect(source, contains('class TestApiClient'));
-      expect(source, contains('Future<ApiResponse<List<Pet>>> listPets('));
+      expect(
+          source, contains('Future<runtime.ApiResponse<List<Pet>>> listPets('));
       expect(source, contains("method: 'GET'"));
       expect(source, contains('_chain.send(request)'));
     });
@@ -331,7 +332,7 @@ void main() {
 
       final clients = generator.generateClients(spec);
       final source = clients.first.source;
-      expect(source, contains('Future<HttpResponse> downloadFile'));
+      expect(source, contains('Future<runtime.HttpResponse> downloadFile'));
       expect(source, contains('return response'));
     });
 
@@ -354,10 +355,10 @@ void main() {
 
       final clients = generator.generateClients(spec);
       final source = clients.first.source;
-      expect(
-          source, contains("this.baseUrl = 'https://petstore.swagger.io/v2'"));
-      expect(source, contains('required HttpAdapter adapter'));
-      expect(source, contains('MiddlewareChain(adapter, middleware)'));
+      expect(source,
+          contains("String baseUrl = 'https://petstore.swagger.io/v2'"));
+      expect(source, contains('required runtime.HttpAdapter adapter'));
+      expect(source, contains('runtime.MiddlewareChain(adapter, middleware)'));
     });
 
     test('throws ApiException for non-2xx responses', () {
@@ -388,7 +389,7 @@ void main() {
 
       final clients = generator.generateClients(spec);
       final source = clients.first.source;
-      expect(source, contains('throw ApiException('));
+      expect(source, contains('throw runtime.ApiException('));
       expect(source, contains('statusCode: response.statusCode'));
     });
   });

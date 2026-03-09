@@ -100,25 +100,28 @@ class ClientGenerator {
     buf.writeln("import 'dart:convert';");
     buf.writeln();
     buf.writeln(
-        "import 'package:dart_open_fetch_runtime/dart_open_fetch_runtime.dart';");
+        "import 'package:dart_open_fetch_runtime/dart_open_fetch_runtime.dart' as runtime;");
     buf.writeln();
 
     buf.writeln('class $className {');
 
     // Constructor
     buf.writeln('  $className({');
-    buf.writeln('    required HttpAdapter adapter,');
-    buf.writeln('    List<Middleware> middleware = const [],');
+    buf.writeln('    required runtime.HttpAdapter adapter,');
+    buf.writeln('    List<runtime.Middleware> middleware = const [],');
     if (baseUrl.isNotEmpty) {
-      buf.writeln("    this.baseUrl = '$baseUrl',");
+      buf.writeln("    String baseUrl = '$baseUrl',");
     } else {
-      buf.writeln('    required this.baseUrl,');
+      buf.writeln('    required String baseUrl,');
     }
-    buf.writeln('  }) : _chain = MiddlewareChain(adapter, middleware);');
+    buf.writeln(
+        "  }) : _chain = runtime.MiddlewareChain(adapter, middleware),");
+    buf.writeln(
+        "       baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;");
     buf.writeln();
 
     // Fields
-    buf.writeln('  final MiddlewareChain _chain;');
+    buf.writeln('  final runtime.MiddlewareChain _chain;');
     buf.writeln('  final String baseUrl;');
     buf.writeln();
 
@@ -147,10 +150,10 @@ class ClientGenerator {
     final bool hasTypedResponse;
     if (jsonSchema != null) {
       final dartType = _schemaToDartType(jsonSchema);
-      returnType = 'Future<ApiResponse<$dartType>>';
+      returnType = 'Future<runtime.ApiResponse<$dartType>>';
       hasTypedResponse = true;
     } else {
-      returnType = 'Future<HttpResponse>';
+      returnType = 'Future<runtime.HttpResponse>';
       hasTypedResponse = false;
     }
 
@@ -189,7 +192,7 @@ class ClientGenerator {
     final bodyVarName = _writeBodySerialization(buf, operation);
 
     // Build and send request
-    buf.writeln("    final request = HttpRequest(");
+    buf.writeln("    final request = runtime.HttpRequest(");
     buf.writeln("      method: '${operation.method.toUpperCase()}',");
     buf.writeln('      url: url,');
     buf.writeln('      headers: headers,');
@@ -265,23 +268,19 @@ class ClientGenerator {
       pathExpr = pathExpr.replaceAll('{${param.name}}', '\${$encoded}');
     }
 
-    // Normalize base URL: strip trailing slash
-    buf.writeln(
-        "    final basePath = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;");
-
     // Ensure path starts with /
     if (!pathExpr.startsWith('/')) {
       pathExpr = '/$pathExpr';
     }
 
     if (queryParams.isEmpty) {
-      buf.writeln("    final url = Uri.parse('\$basePath$pathExpr');");
+      buf.writeln("    final url = Uri.parse('\$baseUrl$pathExpr');");
     } else {
       buf.writeln('    final queryParams = <String, List<String>>{};');
       for (final param in queryParams) {
         buf.write(parameterSerializer.queryParamStatements(param));
       }
-      buf.writeln("    final url = Uri.parse('\$basePath$pathExpr').replace(");
+      buf.writeln("    final url = Uri.parse('\$baseUrl$pathExpr').replace(");
       buf.writeln('      queryParameters: queryParams,');
       buf.writeln('    );');
     }
@@ -359,7 +358,7 @@ class ClientGenerator {
     buf.writeln(
         '    if (response.statusCode >= 200 && response.statusCode < 300) {');
     buf.writeln('      if (response.body.isEmpty) {');
-    buf.writeln('        throw ApiException(');
+    buf.writeln('        throw runtime.ApiException(');
     buf.writeln('          statusCode: response.statusCode,');
     buf.writeln("          body: 'Empty response body',");
     buf.writeln('          headers: response.headers,');
@@ -368,7 +367,7 @@ class ClientGenerator {
     buf.writeln('      final json = jsonDecode(response.body);');
 
     final fromJsonExpr = _fromJsonExpression('json', jsonSchema);
-    buf.writeln('      return ApiResponse(');
+    buf.writeln('      return runtime.ApiResponse(');
     buf.writeln('        data: $fromJsonExpr,');
     buf.writeln('        statusCode: response.statusCode,');
     buf.writeln('        headers: response.headers,');
@@ -406,14 +405,14 @@ class ClientGenerator {
       buf.writeln(
           '      // Failed to parse error body — leave parsedError null');
       buf.writeln('    }');
-      buf.writeln('    throw ApiException(');
+      buf.writeln('    throw runtime.ApiException(');
       buf.writeln('      statusCode: response.statusCode,');
       buf.writeln('      body: response.body,');
       buf.writeln('      headers: response.headers,');
       buf.writeln('      parsedBody: parsedError,');
       buf.writeln('    );');
     } else {
-      buf.writeln('    throw ApiException(');
+      buf.writeln('    throw runtime.ApiException(');
       buf.writeln('      statusCode: response.statusCode,');
       buf.writeln('      body: response.body,');
       buf.writeln('      headers: response.headers,');

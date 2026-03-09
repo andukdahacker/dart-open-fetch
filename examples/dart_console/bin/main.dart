@@ -1,5 +1,4 @@
 import 'package:dart_console_example/petstore/swagger_petstore_openapi_3_0.dart';
-import 'package:dart_console_example/src/http_client_adapter.dart';
 import 'package:dart_console_example/src/logging_middleware.dart';
 import 'package:dart_open_fetch_runtime/dart_open_fetch_runtime.dart';
 

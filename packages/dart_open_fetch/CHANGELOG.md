@@ -1,3 +1,11 @@
+## 0.3.0
+
+### New CLI flags
+- `--wrapper` — Generate thin `{Name}Service` wrappers that unwrap `ApiResponse<T>` to `Future<T>`.
+
+### Improvements
+- Bumped `dart_open_fetch_core` dependency to `^0.3.0`.
+
 ## 0.2.0
 
 ### New CLI flags

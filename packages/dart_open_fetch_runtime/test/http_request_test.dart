@@ -73,5 +73,45 @@ void main() {
       expect(request.toString(), contains('GET'));
       expect(request.toString(), contains('https://example.com/api'));
     });
+
+    group('copyWith', () {
+      test('returns identical copy when no args provided', () {
+        final original = HttpRequest(
+          method: 'POST',
+          url: Uri.parse('https://example.com/api'),
+          headers: {'Accept': 'application/json'},
+          body: '{"a":1}',
+        );
+        final copy = original.copyWith();
+        expect(copy, equals(original));
+      });
+
+      test('overrides a single field', () {
+        final original = HttpRequest(
+          method: 'GET',
+          url: Uri.parse('https://example.com/api'),
+          headers: {'Accept': 'application/json'},
+        );
+        final copy = original.copyWith(method: 'POST');
+        expect(copy.method, 'POST');
+        expect(copy.url, original.url);
+        expect(copy.headers, original.headers);
+        expect(copy.body, isNull);
+      });
+
+      test('headers on copy remain unmodifiable', () {
+        final original = HttpRequest(
+          method: 'GET',
+          url: Uri.parse('https://example.com'),
+        );
+        final copy = original.copyWith(
+          headers: {'X-New': 'value'},
+        );
+        expect(
+          () => copy.headers['injected'] = 'fail',
+          throwsA(isA<UnsupportedError>()),
+        );
+      });
+    });
   });
 }
